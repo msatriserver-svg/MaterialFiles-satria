@@ -17,16 +17,7 @@
 
         <intent
             android:action="me.zhanghai.android.files.intent.action.VIEW_DOWNLOADS"
-            android:targetPackage="me.zhanghai.android.files" />
+            android:targetPackage="com.satriaweb.files" />
     </shortcut>
 
-    <shortcut
-        android:shortcutId="ftp_server"
-        android:icon="@mipmap/ftp_server_shortcut_icon"
-        android:shortcutShortLabel="@string/shortcut_ftp_server_title">
-
-        <intent
-            android:action="me.zhanghai.android.files.intent.action.MANAGE_FTP_SERVER"
-            android:targetPackage="me.zhanghai.android.files" />
-    </shortcut>
 </shortcuts>

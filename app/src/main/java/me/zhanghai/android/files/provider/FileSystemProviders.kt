@@ -12,15 +12,9 @@ import me.zhanghai.android.files.provider.archive.ArchiveFileSystemProvider
 import me.zhanghai.android.files.provider.common.AndroidFileTypeDetector
 import me.zhanghai.android.files.provider.content.ContentFileSystemProvider
 import me.zhanghai.android.files.provider.document.DocumentFileSystemProvider
-import me.zhanghai.android.files.provider.ftp.FtpFileSystemProvider
-import me.zhanghai.android.files.provider.ftp.FtpesFileSystemProvider
-import me.zhanghai.android.files.provider.ftp.FtpsFileSystemProvider
 import me.zhanghai.android.files.provider.linux.LinuxFileSystemProvider
 import me.zhanghai.android.files.provider.root.isRunningAsRoot
 import me.zhanghai.android.files.provider.sftp.SftpFileSystemProvider
-import me.zhanghai.android.files.provider.smb.SmbFileSystemProvider
-import me.zhanghai.android.files.provider.webdav.WebDavFileSystemProvider
-import me.zhanghai.android.files.provider.webdav.WebDavsFileSystemProvider
 
 object FileSystemProviders {
     /**
@@ -39,13 +33,7 @@ object FileSystemProviders {
         if (!isRunningAsRoot) {
             FileSystemProvider.installProvider(ContentFileSystemProvider)
             FileSystemProvider.installProvider(DocumentFileSystemProvider)
-            FileSystemProvider.installProvider(FtpFileSystemProvider)
-            FileSystemProvider.installProvider(FtpsFileSystemProvider)
-            FileSystemProvider.installProvider(FtpesFileSystemProvider)
             FileSystemProvider.installProvider(SftpFileSystemProvider)
-            FileSystemProvider.installProvider(SmbFileSystemProvider)
-            FileSystemProvider.installProvider(WebDavFileSystemProvider)
-            FileSystemProvider.installProvider(WebDavsFileSystemProvider)
         }
         Files.installFileTypeDetector(AndroidFileTypeDetector)
     }
