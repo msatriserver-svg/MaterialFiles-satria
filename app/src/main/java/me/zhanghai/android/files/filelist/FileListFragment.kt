@@ -297,7 +297,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 .also { callback ->
                     // In dual pane mode, back only navigates up in the pane touched last.
                     val update = {
-                        callback.isEnabled = viewModel.canNavigateUpBreadcrumb && (!isDualPane
+                        val selectedIndex = viewModel.breadcrumbLiveData.value?.selectedIndex ?: 0
+                        callback.isEnabled = selectedIndex > 0 && (!isDualPane
                             || dualPaneActivity.activePaneLiveData.value == paneIndex)
                     }
                     viewModel.breadcrumbLiveData.observe(viewLifecycleOwner) { update() }
@@ -704,7 +705,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     private fun updateSpanCount() {
-        layoutManager.spanCount = when (viewModel.viewType) {
+        // Not loaded yet (see updateViewSortMenuItems()); onViewTypeChanged() calls this again.
+        val viewType = viewModel.viewTypeLiveData.value ?: return
+        layoutManager.spanCount = when (viewType) {
             FileViewType.LIST -> 1
             FileViewType.GRID -> {
                 var widthDp = resources.configuration.screenWidthDp
@@ -739,13 +742,16 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         if (searchViewExpanded) {
             return
         }
-        val viewType = viewModel.viewType
+        // In dual pane mode the menu exists before these settings are loaded (they load once their
+        // observers become active); the observers call this again then.
+        val viewType = viewModel.viewTypeLiveData.value ?: return
+        val sortOptions = viewModel.sortOptionsLiveData.value ?: return
+        val isViewSortPathSpecific = viewModel.viewSortPathSpecificLiveData.value ?: return
         val checkedViewTypeItem = when (viewType) {
             FileViewType.LIST -> menuBinding.viewListItem
             FileViewType.GRID -> menuBinding.viewGridItem
         }
         checkedViewTypeItem.isChecked = true
-        val sortOptions = viewModel.sortOptions
         val checkedSortByItem = when (sortOptions.by) {
             By.NAME -> menuBinding.sortByNameItem
             By.TYPE -> menuBinding.sortByTypeItem
@@ -755,7 +761,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         checkedSortByItem.isChecked = true
         menuBinding.sortOrderAscendingItem.isChecked = sortOptions.order == Order.ASCENDING
         menuBinding.sortDirectoriesFirstItem.isChecked = sortOptions.isDirectoriesFirst
-        menuBinding.viewSortPathSpecificItem.isChecked = viewModel.isViewSortPathSpecific
+        menuBinding.viewSortPathSpecificItem.isChecked = isViewSortPathSpecific
     }
 
     private fun navigateUp() {
