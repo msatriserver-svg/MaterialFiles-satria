@@ -17,7 +17,6 @@ import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.app.contentResolver
 import me.zhanghai.android.files.hiddenapi.RestrictedHiddenApi
 import me.zhanghai.android.files.provider.common.DelegateFileChannel
-import me.zhanghai.android.files.provider.root.isRunningAsRoot
 import me.zhanghai.android.files.util.lazyReflectedMethod
 import java.io.File
 import java.io.IOException
@@ -28,9 +27,6 @@ import java.io.IOException
  */
 object MediaScanner {
     fun scan(file: File, isDeleted: Boolean = false) {
-        if (isRunningAsRoot) {
-            return
-        }
         MediaScannerConnection.scanFile(application, arrayOf(file.path), null) { _, _ ->
             if (Build.VERSION.SDK_INT == Build.VERSION_CODES.Q && isDeleted) {
                 // ModernMediaScanner has a bug on Android 10 that may prevent it from removing
@@ -87,16 +83,12 @@ object MediaScanner {
     }
 
     fun createScanOnCloseFileChannel(fileChannel: FileChannel, file: File): FileChannel =
-        if (isRunningAsRoot) {
-            fileChannel
-        } else {
-            object : DelegateFileChannel(fileChannel) {
-                @Throws(IOException::class)
-                override fun implCloseChannel() {
-                    super.implCloseChannel()
+        object : DelegateFileChannel(fileChannel) {
+            @Throws(IOException::class)
+            override fun implCloseChannel() {
+                super.implCloseChannel()
 
-                    scan(file)
-                }
+                scan(file)
             }
         }
 }

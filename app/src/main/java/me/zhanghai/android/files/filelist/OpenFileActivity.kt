@@ -5,16 +5,18 @@
 
 package me.zhanghai.android.files.filelist
 
+import me.zhanghai.android.files.provider.archive.isArchivePath
 import android.content.Intent
 import android.os.Bundle
 import java8.nio.file.Path
 import me.zhanghai.android.files.app.AppActivity
+import me.zhanghai.android.files.util.createIntent
+import me.zhanghai.android.files.app.AppLock
 import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.file.asMimeTypeOrNull
 import me.zhanghai.android.files.file.fileProviderUri
 import me.zhanghai.android.files.filejob.FileJobService
-import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.util.createViewIntent
 import me.zhanghai.android.files.util.extraPath
 import me.zhanghai.android.files.util.startActivitySafe
@@ -23,6 +25,13 @@ class OpenFileActivity : AppActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
+        if (AppLock.isLocked) {
+            // Satria build: a home screen shortcut must not open files past the app lock. Send the
+            // user to the main screen, which asks for authentication.
+            startActivitySafe(FileListActivity::class.createIntent())
+            finish()
+            return
+        }
         val intent = intent
         val path = intent.extraPath
         val mimeType = intent.type?.asMimeTypeOrNull()
@@ -35,12 +44,12 @@ class OpenFileActivity : AppActivity() {
     private fun openFile(path: Path, mimeType: MimeType) {
         if (path.isArchivePath) {
             FileJobService.open(path, mimeType, false, this)
-        } else {
-            val intent = path.fileProviderUri.createViewIntent(mimeType)
-                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                .apply { extraPath = path }
-            startActivitySafe(intent)
+            return
         }
+        val intent = path.fileProviderUri.createViewIntent(mimeType)
+            .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            .apply { extraPath = path }
+        startActivitySafe(intent)
     }
 
     companion object {

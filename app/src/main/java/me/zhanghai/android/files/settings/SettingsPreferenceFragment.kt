@@ -8,6 +8,8 @@ package me.zhanghai.android.files.settings
 import android.os.Build
 import android.os.Bundle
 import android.widget.Toast
+import me.zhanghai.android.files.provider.sftp.client.KnownHosts
+import androidx.preference.Preference
 import androidx.preference.SwitchPreferenceCompat
 import me.zhanghai.android.files.app.AppLock
 import me.zhanghai.android.files.util.showToast
@@ -53,6 +55,14 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 }
             }
             false
+        }
+
+        preferenceScreen.findPreference<Preference>(
+            getString(R.string.pref_key_forget_sftp_host_keys)
+        )!!.setOnPreferenceClickListener {
+            KnownHosts.clear()
+            requireContext().showToast(R.string.settings_forget_sftp_host_keys_done)
+            true
         }
     }
 

@@ -825,4 +825,14 @@
     <string name="app_lock_confirm_title">Confirm it\'s you</string>
     <string name="app_lock_locked">App is locked</string>
     <string name="app_lock_unlock">Unlock</string>
+    <string name="settings_file_list_dual_pane_title">Two panes</string>
+    <string name="settings_file_list_dual_pane_summary">Show two file lists at once (side by side in landscape, stacked in portrait), for example local on one side and SFTP on the other. Takes effect the next time the app is opened.</string>
+    <string name="file_list_action_copy_to_other_pane">Copy to other pane</string>
+    <string name="file_list_action_move_to_other_pane">Move to other pane</string>
+    <string name="file_list_other_pane_read_only">The folder in the other pane is read-only</string>
+    <string name="file_list_other_pane_same_directory">Both panes show the same folder</string>
+    <string name="settings_forget_sftp_host_keys_title">Forget SFTP host keys</string>
+    <string name="settings_forget_sftp_host_keys_summary">The identity of each server is remembered on first connection and checked every time. Use this only after you changed a server\'s key yourself.</string>
+    <string name="settings_forget_sftp_host_keys_done">Saved host keys removed</string>
+    <string name="sftp_host_key_changed_format">WARNING: the host key of %1$s:%2$d has CHANGED. Someone may be intercepting the connection. Connection refused.\nSaved: %3$s\nReceived: %4$s\nIf you replaced the server key yourself, use Settings > Security > Forget SFTP host keys.</string>
 </resources>

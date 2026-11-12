@@ -14,10 +14,8 @@ import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.compat.EnvironmentCompat2
 import me.zhanghai.android.files.filelist.FileSortOptions
 import me.zhanghai.android.files.filelist.FileViewType
-import me.zhanghai.android.files.filelist.OpenApkDefaultAction
 import me.zhanghai.android.files.navigation.BookmarkDirectory
 import me.zhanghai.android.files.navigation.StandardDirectorySettings
-import me.zhanghai.android.files.provider.root.RootStrategy
 import me.zhanghai.android.files.storage.FileSystemRoot
 import me.zhanghai.android.files.storage.PrimaryStorageVolume
 import me.zhanghai.android.files.storage.Storage
@@ -29,7 +27,9 @@ object Settings {
     val STORAGES: SettingLiveData<List<Storage>> =
         ParcelValueSettingLiveData(
             R.string.pref_key_storages,
-            listOf(FileSystemRoot(null, true), PrimaryStorageVolume(null, true))
+            listOf(FileSystemRoot(null, true), PrimaryStorageVolume(null, true)),
+            // Contains SFTP passwords and private keys.
+            encrypted = true
         )
 
     val FILE_LIST_DEFAULT_DIRECTORY: SettingLiveData<Path> =
@@ -43,6 +43,20 @@ object Settings {
         BooleanSettingLiveData(
             R.string.pref_key_file_list_persistent_drawer_open,
             R.bool.pref_default_value_file_list_persistent_drawer_open
+        )
+
+    val CREATE_ARCHIVE_TYPE: SettingLiveData<Int> =
+        ResourceIdSettingLiveData(R.string.pref_key_create_archive_type, R.id.zipRadio)
+
+    val ARCHIVE_FILE_NAME_ENCODING: SettingLiveData<String> =
+        StringSettingLiveData(
+            R.string.pref_key_archive_file_name_encoding,
+            R.string.pref_default_value_archive_file_name_encoding
+        )
+
+    val FILE_LIST_DUAL_PANE: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(
+            R.string.pref_key_file_list_dual_pane, R.bool.pref_default_value_file_list_dual_pane
         )
 
     val FILE_LIST_SHOW_HIDDEN_FILES: SettingLiveData<Boolean> =
@@ -61,42 +75,6 @@ object Settings {
         ParcelValueSettingLiveData(
             R.string.pref_key_file_list_sort_options,
             FileSortOptions(FileSortOptions.By.NAME, FileSortOptions.Order.ASCENDING, true)
-        )
-
-    val CREATE_ARCHIVE_TYPE: SettingLiveData<Int> =
-        ResourceIdSettingLiveData(R.string.pref_key_create_archive_type, R.id.zipRadio)
-
-    val FTP_SERVER_ANONYMOUS_LOGIN: SettingLiveData<Boolean> =
-        BooleanSettingLiveData(
-            R.string.pref_key_ftp_server_anonymous_login,
-            R.bool.pref_default_value_ftp_server_anonymous_login
-        )
-
-    val FTP_SERVER_USERNAME: SettingLiveData<String> =
-        StringSettingLiveData(
-            R.string.pref_key_ftp_server_username, R.string.pref_default_value_ftp_server_username
-        )
-
-    val FTP_SERVER_PASSWORD: SettingLiveData<String> =
-        StringSettingLiveData(
-            R.string.pref_key_ftp_server_password, R.string.pref_default_value_empty
-        )
-
-    val FTP_SERVER_PORT: SettingLiveData<Int> =
-        IntegerSettingLiveData(
-            R.string.pref_key_ftp_server_port, R.integer.pref_default_value_ftp_server_port
-        )
-
-    val FTP_SERVER_HOME_DIRECTORY: SettingLiveData<Path> =
-        ParcelValueSettingLiveData(
-            R.string.pref_key_ftp_server_home_directory,
-            @Suppress("DEPRECATION")
-            Paths.get(Environment.getExternalStorageDirectory().absolutePath)
-        )
-
-    val FTP_SERVER_WRITABLE: SettingLiveData<Boolean> =
-        BooleanSettingLiveData(
-            R.string.pref_key_ftp_server_writable, R.bool.pref_default_value_ftp_server_writable
         )
 
     val THEME_COLOR: SettingLiveData<ThemeColor> =
@@ -158,25 +136,6 @@ object Settings {
                     )
                 )
             )
-        )
-
-    val ROOT_STRATEGY: SettingLiveData<RootStrategy> =
-        EnumSettingLiveData(
-            R.string.pref_key_root_strategy, R.string.pref_default_value_root_strategy,
-            RootStrategy::class.java
-        )
-
-    val ARCHIVE_FILE_NAME_ENCODING: SettingLiveData<String> =
-        StringSettingLiveData(
-            R.string.pref_key_archive_file_name_encoding,
-            R.string.pref_default_value_archive_file_name_encoding
-        )
-
-    val OPEN_APK_DEFAULT_ACTION: SettingLiveData<OpenApkDefaultAction> =
-        EnumSettingLiveData(
-            R.string.pref_key_open_apk_default_action,
-            R.string.pref_default_value_open_apk_default_action,
-            OpenApkDefaultAction::class.java
         )
 
     val SHOW_PDF_THUMBNAIL_PRE_28: SettingLiveData<Boolean> = BooleanSettingLiveData(

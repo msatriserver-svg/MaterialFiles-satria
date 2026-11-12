@@ -5,6 +5,8 @@
 
 package me.zhanghai.android.files.filelist
 
+import me.zhanghai.android.files.provider.archive.createArchiveRootPath
+import me.zhanghai.android.files.provider.archive.isArchivePath
 import android.app.Activity
 import android.content.ClipData
 import android.content.Context
@@ -79,11 +81,8 @@ import me.zhanghai.android.files.navigation.BookmarkDirectories
 import me.zhanghai.android.files.navigation.BookmarkDirectory
 import me.zhanghai.android.files.navigation.NavigationFragment
 import me.zhanghai.android.files.navigation.NavigationRootMapLiveData
-import me.zhanghai.android.files.provider.archive.createArchiveRootPath
-import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.linux.isLinuxPath
 import me.zhanghai.android.files.settings.Settings
-import me.zhanghai.android.files.terminal.Terminal
 import me.zhanghai.android.files.ui.AppBarLayoutExpandHackListener
 import me.zhanghai.android.files.ui.CoordinatorAppBarLayout
 import me.zhanghai.android.files.ui.DrawerLayoutOnBackPressedCallback
@@ -133,7 +132,7 @@ import me.zhanghai.android.files.util.withChooser
 import me.zhanghai.android.files.viewer.image.ImageViewerActivity
 
 class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.Listener,
-    ConfirmReplaceFileDialogFragment.Listener, OpenApkDialogFragment.Listener,
+    ConfirmReplaceFileDialogFragment.Listener,
     ConfirmDeleteFilesDialogFragment.Listener, CreateArchiveDialogFragment.Listener,
     RenameFileDialogFragment.Listener, CreateFileDialogFragment.Listener,
     CreateDirectoryDialogFragment.Listener, NavigateToPathDialogFragment.Listener,
@@ -165,6 +164,19 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     private val args by args<Args>()
     private val argsPath by lazy { args.intent.extraPath }
 
+    // Satria build: dual pane (commander style). paneIndex is -1 when this is the only pane.
+    private val paneIndex: Int
+        get() = args.paneIndex
+    private val isDualPane: Boolean
+        get() = paneIndex >= 0
+    private val dualPaneActivity: FileListActivity
+        get() = requireActivity() as FileListActivity
+    private var isDualPanePersistentDrawerOpen = false
+
+    /** The directory this pane is showing, for transfers started from the other pane. */
+    val paneCurrentPath: Path
+        get() = viewModel.currentPath
+
     private val viewModel by viewModels { { FileListViewModel() } }
 
     private lateinit var binding: Binding
@@ -195,7 +207,8 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        setHasOptionsMenu(true)
+        // In dual pane mode each pane owns the menu of its own toolbar.
+        setHasOptionsMenu(!isDualPane)
     }
 
     override fun onCreateView(
@@ -219,8 +232,18 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         navigationFragment.listener = this
         val activity = requireActivity() as AppCompatActivity
-        activity.setTitle(R.string.file_list_title)
-        activity.setSupportActionBar(binding.toolbar)
+        if (isDualPane) {
+            binding.toolbar.setTitle(R.string.file_list_title)
+            binding.toolbar.inflateMenu(R.menu.file_list)
+            menuBinding = MenuBinding.bind(binding.toolbar.menu)
+            menuBinding.viewSortItem.subMenu!!.setGroupDividerEnabledCompat(true)
+            setUpSearchView()
+            binding.toolbar.setOnMenuItemClickListener { onOptionsItemSelected(it) }
+            binding.toolbar.setNavigationOnClickListener { onNavigationIconClicked() }
+        } else {
+            activity.setTitle(R.string.file_list_title)
+            activity.setSupportActionBar(binding.toolbar)
+        }
         overlayActionMode = OverlayToolbarActionMode(binding.overlayToolbar, binding.toolbar)
         bottomActionMode = PersistentBarLayoutToolbarActionMode(
             binding.persistentBarLayout, binding.bottomBarLayout, binding.bottomToolbar
@@ -234,7 +257,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         }
         binding.appBarLayout.syncBackgroundColorTo(binding.overlayToolbar)
         binding.breadcrumbLayout.setListener(this)
-        if (!(activity.hasSw600Dp && activity.isOrientationLandscape)) {
+        if (isDualPane || !(activity.hasSw600Dp && activity.isOrientationLandscape)) {
             binding.swipeRefreshLayout.setProgressViewEndTarget(
                 true, binding.swipeRefreshLayout.progressViewEndOffset
             )
@@ -268,8 +291,17 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 }
             }
                 .also { callback ->
-                    viewModel.breadcrumbLiveData.observe(viewLifecycleOwner) {
-                        callback.isEnabled = viewModel.canNavigateUpBreadcrumb
+                    // In dual pane mode, back only navigates up in the pane touched last.
+                    val update = {
+                        callback.isEnabled = viewModel.canNavigateUpBreadcrumb && (!isDualPane
+                            || dualPaneActivity.activePaneLiveData.value == paneIndex)
+                    }
+                    viewModel.breadcrumbLiveData.observe(viewLifecycleOwner) { update() }
+                    if (isDualPane) {
+                        dualPaneActivity.activePaneLiveData.observe(viewLifecycleOwner) {
+                            update()
+                            binding.breadcrumbLayout.alpha = if (it == paneIndex) 1f else 0.5f
+                        }
                     }
                 }
         )
@@ -352,8 +384,13 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         // make view type live data active first (so that it can load its initial value) before we
         // register another observer that needs to get the view type.
         if (binding.persistentDrawerLayout != null) {
-            Settings.FILE_LIST_PERSISTENT_DRAWER_OPEN.observe(viewLifecycleOwner) {
-                onPersistentDrawerOpenChanged(it)
+            if (isDualPane) {
+                // Each pane is narrow: start with its drawer closed and toggle it per pane.
+                onPersistentDrawerOpenChanged(isDualPanePersistentDrawerOpen)
+            } else {
+                Settings.FILE_LIST_PERSISTENT_DRAWER_OPEN.observe(viewLifecycleOwner) {
+                    onPersistentDrawerOpenChanged(it)
+                }
             }
         }
         viewModel.sortOptionsLiveData.observe(viewLifecycleOwner) { onSortOptionsChanged(it) }
@@ -373,6 +410,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     override fun onResume() {
         super.onResume()
 
+        if (paneIndex > 0) {
+            // The first pane asks for permissions; don't show every prompt twice.
+            return
+        }
         if (!viewModel.isNotificationPermissionRequested) {
             ensureStorageAccess()
         }
@@ -446,12 +487,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         return when (item.itemId) {
             android.R.id.home -> {
-                binding.drawerLayout?.openDrawer(GravityCompat.START)
-                if (binding.persistentDrawerLayout != null) {
-                    Settings.FILE_LIST_PERSISTENT_DRAWER_OPEN.putValue(
-                        !Settings.FILE_LIST_PERSISTENT_DRAWER_OPEN.valueCompat
-                    )
-                }
+                onNavigationIconClicked()
                 true
             }
             R.id.action_view_list -> {
@@ -528,10 +564,6 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 copyPath()
                 true
             }
-            R.id.action_open_in_terminal -> {
-                openInTerminal()
-                true
-            }
             R.id.action_add_bookmark -> {
                 addBookmark()
                 true
@@ -541,6 +573,20 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                 true
             }
             else -> super.onOptionsItemSelected(item)
+        }
+    }
+
+    private fun onNavigationIconClicked() {
+        binding.drawerLayout?.openDrawer(GravityCompat.START)
+        if (binding.persistentDrawerLayout != null) {
+            if (isDualPane) {
+                isDualPanePersistentDrawerOpen = !isDualPanePersistentDrawerOpen
+                onPersistentDrawerOpenChanged(isDualPanePersistentDrawerOpen)
+            } else {
+                Settings.FILE_LIST_PERSISTENT_DRAWER_OPEN.putValue(
+                    !Settings.FILE_LIST_PERSISTENT_DRAWER_OPEN.valueCompat
+                )
+            }
         }
     }
 
@@ -658,6 +704,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             FileViewType.LIST -> 1
             FileViewType.GRID -> {
                 var widthDp = resources.configuration.screenWidthDp
+                if (isDualPane && requireActivity().isOrientationLandscape) {
+                    widthDp /= 2
+                }
                 val persistentDrawerLayout = binding.persistentDrawerLayout
                 if (persistentDrawerLayout != null &&
                     persistentDrawerLayout.isDrawerOpen(GravityCompat.START)) {
@@ -755,15 +804,6 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         copyPath(currentPath)
     }
 
-    private fun openInTerminal() {
-        val path = currentPath
-        if (path.isLinuxPath) {
-            Terminal.open(path.toFile().path, requireContext())
-        } else {
-            // TODO
-        }
-    }
-
     override fun navigateTo(path: Path) {
         collapseSearchView()
         val state = layoutManager.onSaveInstanceState()
@@ -793,7 +833,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
                     getQuantityString(R.plurals.file_list_title_open_directory, count)
             }
         }
-        requireActivity().title = title
+        if (isDualPane) {
+            binding.toolbar.title = title
+        } else {
+            requireActivity().title = title
+        }
         updateSelectAllMenuItem()
         updateOverlayToolbar()
         updateBottomToolbar()
@@ -894,6 +938,9 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             menu.findItem(R.id.action_extract).isVisible = areAllFilesArchiveFiles
             val isCurrentPathReadOnly = viewModel.currentPath.fileSystem.isReadOnly
             menu.findItem(R.id.action_archive).isVisible = !isCurrentPathReadOnly
+            menu.findItem(R.id.action_copy_to_other_pane).isVisible = isDualPane
+            menu.findItem(R.id.action_move_to_other_pane).isVisible =
+                isDualPane && !isAnyFileReadOnly
         }
         if (!overlayActionMode.isActive) {
             binding.appBarLayout.setExpanded(true)
@@ -929,6 +976,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             }
             R.id.action_copy -> {
                 copyFiles(viewModel.selectedFiles)
+                true
+            }
+            R.id.action_copy_to_other_pane -> {
+                transferToOtherPane(viewModel.selectedFiles, true)
+                true
+            }
+            R.id.action_move_to_other_pane -> {
+                transferToOtherPane(viewModel.selectedFiles, false)
                 true
             }
             R.id.action_delete -> {
@@ -983,6 +1038,40 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         viewModel.selectFiles(files, false)
     }
 
+    // Satria build: one-step transfer into the directory shown by the other pane.
+    private fun transferToOtherPane(files: FileItemSet, copy: Boolean) {
+        if (!isDualPane || files.isEmpty()) {
+            return
+        }
+        val targetDirectory = dualPaneActivity.getOtherPanePath(paneIndex) ?: return
+        if (targetDirectory.fileSystem.isReadOnly) {
+            showToast(R.string.file_list_other_pane_read_only)
+            return
+        }
+        if (files.any { it.path.parent == targetDirectory }) {
+            showToast(R.string.file_list_other_pane_same_directory)
+            return
+        }
+        val sources = makePathListForJob(files)
+        if (copy) {
+            FileJobService.copy(sources, targetDirectory, requireContext())
+        } else {
+            FileJobService.move(sources, targetDirectory, requireContext())
+        }
+        viewModel.selectFiles(files, false)
+    }
+
+    override val supportsOtherPane: Boolean
+        get() = isDualPane
+
+    override fun copyFileToOtherPane(file: FileItem) {
+        transferToOtherPane(fileItemSetOf(file), true)
+    }
+
+    override fun moveFileToOtherPane(file: FileItem) {
+        transferToOtherPane(fileItemSetOf(file), false)
+    }
+
     private fun confirmDeleteFiles(files: FileItemSet) {
         ConfirmDeleteFilesDialogFragment.show(files, this)
     }
@@ -1013,6 +1102,14 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             makePathListForJob(files), archiveFile, format, filter, password, requireContext()
         )
         viewModel.selectFiles(files, false)
+    }
+
+    override fun extractFile(file: FileItem) {
+        copyFile(file.createDummyArchiveRoot())
+    }
+
+    override fun showCreateArchiveDialog(file: FileItem) {
+        showCreateArchiveDialog(fileItemSetOf(file))
     }
 
     private fun shareFiles(files: FileItemSet) {
@@ -1211,46 +1308,11 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
             }
             return
         }
-        if (file.mimeType.isApk) {
-            openApk(file)
-            return
-        }
         if (file.isListable) {
             navigateTo(file.listablePath)
             return
         }
         openFileWithIntent(file, false)
-    }
-
-    private fun openApk(file: FileItem) {
-        if (!file.isListable) {
-            installApk(file)
-            return
-        }
-        when (Settings.OPEN_APK_DEFAULT_ACTION.valueCompat) {
-            OpenApkDefaultAction.INSTALL -> installApk(file)
-            OpenApkDefaultAction.VIEW -> viewApk(file)
-            OpenApkDefaultAction.ASK -> OpenApkDialogFragment.show(file, this)
-        }
-    }
-
-    override fun installApk(file: FileItem) {
-        val path = file.path
-        val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
-            if (!path.isArchivePath) path.fileProviderUri else null
-        } else {
-            // PackageInstaller only supports file URI before N.
-            if (path.isLinuxPath) Uri.fromFile(path.toFile()) else null
-        }
-        if (uri != null) {
-            startActivitySafe(uri.createInstallPackageIntent())
-        } else {
-            FileJobService.installApk(path, requireContext())
-        }
-    }
-
-    override fun viewApk(file: FileItem) {
-        navigateTo(file.listablePath)
     }
 
     override fun openFileWith(file: FileItem) {
@@ -1261,28 +1323,29 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         val path = file.path
         val mimeType = file.mimeType
         if (path.isArchivePath) {
+            // Files inside an archive are extracted to the cache first.
             FileJobService.open(path, mimeType, withChooser, requireContext())
-        } else {
-            val intent = path.fileProviderUri.createViewIntent(mimeType)
-                .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-                .apply {
-                    extraPath = path
-                    maybeAddImageViewerActivityExtras(this, path, mimeType)
-                }
-                .let {
-                    if (withChooser) {
-                        it.withChooser(
-                            EditFileActivity::class.createIntent()
-                                .putArgs(EditFileActivity.Args(path, mimeType)),
-                            OpenFileAsDialogActivity::class.createIntent()
-                                .putArgs(OpenFileAsDialogFragment.Args(path))
-                        )
-                    } else {
-                        it
-                    }
-                }
-            startActivitySafe(intent)
+            return
         }
+        val intent = path.fileProviderUri.createViewIntent(mimeType)
+            .addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
+            .apply {
+                extraPath = path
+                maybeAddImageViewerActivityExtras(this, path, mimeType)
+            }
+            .let {
+                if (withChooser) {
+                    it.withChooser(
+                        EditFileActivity::class.createIntent()
+                            .putArgs(EditFileActivity.Args(path, mimeType)),
+                        OpenFileAsDialogActivity::class.createIntent()
+                            .putArgs(OpenFileAsDialogFragment.Args(path))
+                    )
+                } else {
+                    it
+                }
+            }
+        startActivitySafe(intent)
     }
 
     private fun maybeAddImageViewerActivityExtras(intent: Intent, path: Path, mimeType: MimeType) {
@@ -1341,14 +1404,6 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     override fun renameFile(file: FileItem, newName: String) {
         FileJobService.rename(file.path, newName, requireContext())
         viewModel.selectFile(file, false)
-    }
-
-    override fun extractFile(file: FileItem) {
-        copyFile(file.createDummyArchiveRoot())
-    }
-
-    override fun showCreateArchiveDialog(file: FileItem) {
-        showCreateArchiveDialog(fileItemSetOf(file))
     }
 
     override fun shareFile(file: FileItem) {
@@ -1651,7 +1706,7 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
     }
 
     @Parcelize
-    class Args(val intent: Intent) : ParcelableArgs
+    class Args(val intent: Intent, val paneIndex: Int = -1) : ParcelableArgs
 
     private class Binding private constructor(
         val root: View,
@@ -1719,6 +1774,10 @@ class FileListFragment : Fragment(), BreadcrumbLayout.Listener, FileListAdapter.
         companion object {
             fun inflate(menu: Menu, inflater: MenuInflater): MenuBinding {
                 inflater.inflate(R.menu.file_list, menu)
+                return bind(menu)
+            }
+
+            fun bind(menu: Menu): MenuBinding {
                 return MenuBinding(
                     menu, menu.findItem(R.id.action_search), menu.findItem(R.id.action_view_sort),
                     menu.findItem(R.id.action_view_list), menu.findItem(R.id.action_view_grid),

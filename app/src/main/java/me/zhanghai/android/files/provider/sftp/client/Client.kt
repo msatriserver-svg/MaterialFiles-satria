@@ -8,6 +8,8 @@ package me.zhanghai.android.files.provider.sftp.client
 import java8.nio.channels.SeekableByteChannel
 import me.zhanghai.android.files.provider.common.LocalWatchService
 import me.zhanghai.android.files.provider.common.NotifyEntryModifiedSeekableByteChannel
+import me.zhanghai.android.files.R
+import me.zhanghai.android.files.app.application
 import me.zhanghai.android.files.util.closeSafe
 import net.schmizz.sshj.SSHClient
 import net.schmizz.sshj.sftp.FileAttributes
@@ -18,7 +20,6 @@ import net.schmizz.sshj.sftp.Response
 import net.schmizz.sshj.sftp.SFTPClient
 import net.schmizz.sshj.sftp.SFTPException
 import net.schmizz.sshj.transport.TransportException
-import net.schmizz.sshj.transport.verification.PromiscuousVerifier
 import net.schmizz.sshj.userauth.UserAuthException
 import java.io.IOException
 import java.util.Collections
@@ -237,11 +238,21 @@ object Client {
             }
             val authentication = authenticator.getAuthentication(authority)
                 ?: throw ClientException("No authentication found for $authority")
-            val sshClient = SSHClient().apply { addHostKeyVerifier(PromiscuousVerifier()) }
+            val hostKeyVerifier = KnownHosts.Verifier()
+            val sshClient = SSHClient().apply { addHostKeyVerifier(hostKeyVerifier) }
             try {
                 sshClient.connect(authority.host, authority.port)
             } catch (e: IOException) {
                 sshClient.closeSafe()
+                val mismatch = hostKeyVerifier.mismatch
+                if (mismatch != null) {
+                    throw ClientException(
+                        application.getString(
+                            R.string.sftp_host_key_changed_format, authority.host, authority.port,
+                            mismatch.pinned, mismatch.presented
+                        ), e
+                    )
+                }
                 throw ClientException(e)
             }
             try {
@@ -253,7 +264,12 @@ object Client {
                 sshClient.closeSafe()
                 throw ClientException(e)
             }
-            client = sshClient.newSFTPClient()
+            client = try {
+                sshClient.newSFTPClient()
+            } catch (e: IOException) {
+                sshClient.closeSafe()
+                throw ClientException(e)
+            }
             clients[authority] = client
             return client
         }

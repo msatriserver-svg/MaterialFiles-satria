@@ -28,12 +28,11 @@ import me.zhanghai.android.files.compat.opPackageNameCompat
 import me.zhanghai.android.files.compat.pathFileCompat
 import me.zhanghai.android.files.provider.common.ByteString
 import me.zhanghai.android.files.provider.common.ByteStringListPath
-import me.zhanghai.android.files.provider.root.RootablePath
 import me.zhanghai.android.files.storage.StorageVolumeListLiveData
 import me.zhanghai.android.files.util.readParcelable
 import me.zhanghai.android.files.util.valueCompat
 
-internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
+internal class LinuxPath : ByteStringListPath<LinuxPath> {
     private val fileSystem: LinuxFileSystem
 
     constructor(fileSystem: LinuxFileSystem, path: ByteString) : super(
@@ -82,20 +81,6 @@ internal class LinuxPath : ByteStringListPath<LinuxPath>, RootablePath {
             throw ProviderMismatchException(watcher.toString())
         }
         return watcher.register(this, events, *modifiers)
-    }
-
-    override fun isRootRequired(isAttributeAccess: Boolean): Boolean {
-        val file = toFile()
-        return StorageVolumeListLiveData.valueCompat.none {
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.R && !it.isPrimaryCompat) {
-                return@none false
-            }
-            val storageVolumeDirectory = it.pathFileCompat
-            if (!file.startsWith(storageVolumeDirectory)) {
-                return@none false
-            }
-            return@none file.isAccessibleInStorageVolume(storageVolumeDirectory, isAttributeAccess)
-        }
     }
 
     private fun File.isAccessibleInStorageVolume(

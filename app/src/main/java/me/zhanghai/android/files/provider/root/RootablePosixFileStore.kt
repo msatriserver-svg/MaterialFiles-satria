@@ -13,10 +13,8 @@ import java.io.IOException
 
 abstract class RootablePosixFileStore(
     private val path: Path,
-    private val localFileStore: PosixFileStore,
-    rootFileStoreCreator: (PosixFileStore) -> RootPosixFileStore
+    private val localFileStore: PosixFileStore
 ) : PosixFileStore(), Parcelable {
-    private val rootFileStore: RootPosixFileStore = rootFileStoreCreator(this)
 
     @Throws(IOException::class)
     override fun refresh() {
@@ -33,9 +31,6 @@ abstract class RootablePosixFileStore(
     override fun setReadOnly(readOnly: Boolean) {
         callRootable(path) {
             isReadOnly = readOnly
-            if (this == rootFileStore) {
-                localFileStore.refresh()
-            }
         }
     }
 
@@ -54,7 +49,7 @@ abstract class RootablePosixFileStore(
     override fun supportsFileAttributeView(name: String): Boolean =
         localFileStore.supportsFileAttributeView(name)
 
-    @Throws(IOException::class)
-    private fun <R> callRootable(path: Path, block: PosixFileStore.() -> R): R =
-        callRootable(path, true, localFileStore, rootFileStore, block)
+    @Suppress("UNUSED_PARAMETER")
+    private inline fun <R> callRootable(path: Path, block: PosixFileStore.() -> R): R =
+        localFileStore.block()
 }

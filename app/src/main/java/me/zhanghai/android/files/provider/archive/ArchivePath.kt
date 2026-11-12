@@ -15,12 +15,11 @@ import java8.nio.file.WatchService
 import me.zhanghai.android.files.provider.common.ByteString
 import me.zhanghai.android.files.provider.common.ByteStringListPath
 import me.zhanghai.android.files.provider.common.toByteString
-import me.zhanghai.android.files.provider.root.RootablePath
 import me.zhanghai.android.files.util.readParcelable
 import java.io.File
 import java.io.IOException
 
-internal class ArchivePath : ByteStringListPath<ArchivePath>, RootablePath {
+internal class ArchivePath : ByteStringListPath<ArchivePath> {
     private val fileSystem: ArchiveFileSystem
 
     constructor(fileSystem: ArchiveFileSystem, path: ByteString) : super(
@@ -76,15 +75,6 @@ internal class ArchivePath : ByteStringListPath<ArchivePath>, RootablePath {
         vararg modifiers: WatchEvent.Modifier
     ): WatchKey {
         throw UnsupportedOperationException()
-    }
-
-    override fun isRootRequired(isAttributeAccess: Boolean): Boolean {
-        val archiveFile = fileSystem.archiveFile
-        return if (archiveFile is RootablePath) {
-            archiveFile.isRootRequired(isAttributeAccess)
-        } else {
-            false
-        }
     }
 
     private constructor(source: Parcel) : super(source) {

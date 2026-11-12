@@ -277,9 +277,13 @@ class ParcelValueSettingLiveData<T>(
     nameSuffix: String?,
     @StringRes keyRes: Int,
     keySuffix: String?,
-    private val defaultValue: T
+    private val defaultValue: T,
+    // Satria build: keep the stored value encrypted with a Keystore key.
+    private val encrypted: Boolean = false
 ) : SettingLiveData<T>(nameSuffix, keyRes, keySuffix, 0) {
-    constructor(@StringRes keyRes: Int, defaultValue: T) : this(null, keyRes, null, defaultValue)
+    constructor(@StringRes keyRes: Int, defaultValue: T, encrypted: Boolean = false) : this(
+        null, keyRes, null, defaultValue, encrypted
+    )
 
     init {
         init()
@@ -291,20 +295,44 @@ class ParcelValueSettingLiveData<T>(
         sharedPreferences: SharedPreferences,
         key: String,
         defaultValue: T
-    ): T =
-        try {
-            sharedPreferences.getString(key, null)?.asBase64()?.toParcelValue()
+    ): T {
+        val string = sharedPreferences.getString(key, null) ?: return defaultValue
+        return try {
+            if (SecretBox.isEncrypted(string)) {
+                SecretBox.decrypt(string).toParcelValue()
+            } else {
+                val value = string.asBase64().toByteArray().toParcelValue()
+                if (encrypted && value != null) {
+                    // Stored by an older version in the clear: encrypt it now.
+                    putValue(sharedPreferences, key, value)
+                }
+                value
+            }
         } catch (e: Exception) {
             e.printStackTrace()
             null
         } ?: defaultValue
-
-    override fun putValue(sharedPreferences: SharedPreferences, key: String, value: T) {
-        sharedPreferences.edit { putString(key, value?.toParcelBase64()?.value) }
     }
 
-    private fun Base64.toParcelValue(): T {
-        val bytes = toByteArray()
+    override fun putValue(sharedPreferences: SharedPreferences, key: String, value: T) {
+        val bytes = value?.toParcelBytes()
+        val string = when {
+            bytes == null -> null
+            encrypted ->
+                try {
+                    SecretBox.encrypt(bytes)
+                } catch (e: Exception) {
+                    // A broken Keystore must not make it impossible to save servers at all.
+                    e.printStackTrace()
+                    bytes.toBase64().value
+                }
+            else -> bytes.toBase64().value
+        }
+        sharedPreferences.edit { putString(key, string) }
+    }
+
+    private fun ByteArray.toParcelValue(): T {
+        val bytes = this
         return Parcel.obtain().use { parcel ->
             parcel.unmarshall(bytes, 0, bytes.size)
             parcel.setDataPosition(0)
@@ -313,11 +341,9 @@ class ParcelValueSettingLiveData<T>(
         }
     }
 
-    private fun T.toParcelBase64(): Base64 {
-        val bytes = Parcel.obtain().use { parcel ->
+    private fun T.toParcelBytes(): ByteArray =
+        Parcel.obtain().use { parcel ->
             parcel.writeValue(this)
             parcel.marshall()
         }
-        return bytes.toBase64()
-    }
 }

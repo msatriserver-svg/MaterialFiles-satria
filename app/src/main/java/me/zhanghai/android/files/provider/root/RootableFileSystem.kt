@@ -16,22 +16,15 @@ import java8.nio.file.spi.FileSystemProvider
 import java.io.IOException
 
 abstract class RootableFileSystem(
-    localFileSystemCreator: (FileSystem) -> FileSystem,
-    rootFileSystemCreator: (FileSystem) -> RootFileSystem
+    localFileSystemCreator: (FileSystem) -> FileSystem
 ) : FileSystem(), Parcelable {
     protected open val localFileSystem: FileSystem = localFileSystemCreator(this)
-    protected open val rootFileSystem: RootFileSystem = rootFileSystemCreator(this)
 
     override fun provider(): FileSystemProvider = localFileSystem.provider()
 
     @Throws(IOException::class)
     override fun close() {
-        val wasOpen = localFileSystem.isOpen
         localFileSystem.close()
-        // TODO: No need for this check?
-        if (wasOpen) {
-            rootFileSystem.close()
-        }
     }
 
     override fun isOpen(): Boolean = localFileSystem.isOpen

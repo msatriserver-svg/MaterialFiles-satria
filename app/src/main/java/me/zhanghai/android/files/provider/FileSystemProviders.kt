@@ -13,7 +13,6 @@ import me.zhanghai.android.files.provider.common.AndroidFileTypeDetector
 import me.zhanghai.android.files.provider.content.ContentFileSystemProvider
 import me.zhanghai.android.files.provider.document.DocumentFileSystemProvider
 import me.zhanghai.android.files.provider.linux.LinuxFileSystemProvider
-import me.zhanghai.android.files.provider.root.isRunningAsRoot
 import me.zhanghai.android.files.provider.sftp.SftpFileSystemProvider
 
 object FileSystemProviders {
@@ -30,11 +29,9 @@ object FileSystemProviders {
     fun install() {
         FileSystemProvider.installDefaultProvider(LinuxFileSystemProvider)
         FileSystemProvider.installProvider(ArchiveFileSystemProvider)
-        if (!isRunningAsRoot) {
-            FileSystemProvider.installProvider(ContentFileSystemProvider)
-            FileSystemProvider.installProvider(DocumentFileSystemProvider)
-            FileSystemProvider.installProvider(SftpFileSystemProvider)
-        }
+        FileSystemProvider.installProvider(ContentFileSystemProvider)
+        FileSystemProvider.installProvider(DocumentFileSystemProvider)
+        FileSystemProvider.installProvider(SftpFileSystemProvider)
         Files.installFileTypeDetector(AndroidFileTypeDetector)
     }
 

@@ -656,4 +656,14 @@
     <string name="app_lock_confirm_title">Konfirmasi bahwa ini Anda</string>
     <string name="app_lock_locked">Aplikasi terkunci</string>
     <string name="app_lock_unlock">Buka kunci</string>
+    <string name="settings_file_list_dual_pane_title">Dua panel</string>
+    <string name="settings_file_list_dual_pane_summary">Tampilkan dua daftar file sekaligus (kiri-kanan saat lanskap, atas-bawah saat potret), misalnya lokal di satu sisi dan SFTP di sisi lain. Berlaku saat aplikasi dibuka lagi.</string>
+    <string name="file_list_action_copy_to_other_pane">Salin ke panel sebelah</string>
+    <string name="file_list_action_move_to_other_pane">Pindahkan ke panel sebelah</string>
+    <string name="file_list_other_pane_read_only">Folder di panel sebelah hanya-baca</string>
+    <string name="file_list_other_pane_same_directory">Kedua panel menampilkan folder yang sama</string>
+    <string name="settings_forget_sftp_host_keys_title">Lupakan host key SFTP</string>
+    <string name="settings_forget_sftp_host_keys_summary">Identitas tiap server diingat saat koneksi pertama dan diperiksa setiap kali tersambung. Pakai ini hanya setelah Anda sendiri mengganti kunci server.</string>
+    <string name="settings_forget_sftp_host_keys_done">Host key tersimpan dihapus</string>
+    <string name="sftp_host_key_changed_format">PERINGATAN: host key %1$s:%2$d BERUBAH. Koneksi mungkin sedang disadap. Koneksi ditolak.\nTersimpan: %3$s\nDiterima: %4$s\nJika Anda sendiri yang mengganti kunci server, buka Pengaturan > Keamanan > Lupakan host key SFTP.</string>
 </resources>

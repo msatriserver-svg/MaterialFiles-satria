@@ -42,6 +42,12 @@
             android:defaultValue="@bool/pref_default_value_black_night_mode" />
 
         <SwitchPreferenceCompat
+            android:key="@string/pref_key_file_list_dual_pane"
+            android:title="@string/settings_file_list_dual_pane_title"
+            android:summary="@string/settings_file_list_dual_pane_summary"
+            android:defaultValue="@bool/pref_default_value_file_list_dual_pane" />
+
+        <SwitchPreferenceCompat
             android:key="@string/pref_key_file_list_animation"
             android:title="@string/settings_file_list_animation_title"
             android:defaultValue="@bool/pref_default_value_file_list_animation" />
@@ -74,26 +80,10 @@
             android:title="@string/settings_bookmark_directories_title"
             android:summary="@string/settings_bookmark_directories_summary_empty" />
 
-        <me.zhanghai.android.files.settings.RootStrategyPreference
-            android:key="@string/pref_key_root_strategy"
-            android:title="@string/settings_root_strategy_title"
-            android:defaultValue="@string/pref_default_value_root_strategy"
-            android:entries="@array/settings_root_strategy_entries"
-            android:entryValues="@array/pref_entry_values_root_strategy"
-            app:useSimpleSummaryProvider="true" />
-
         <me.zhanghai.android.files.settings.CharsetPreference
             android:key="@string/pref_key_archive_file_name_encoding"
             android:title="@string/settings_archive_file_name_encoding_title"
             android:defaultValue="@string/pref_default_value_archive_file_name_encoding"
-            app:useSimpleSummaryProvider="true" />
-
-        <rikka.preference.SimpleMenuPreference
-            android:key="@string/pref_key_open_apk_default_action"
-            android:title="@string/settings_open_apk_default_action_title"
-            android:defaultValue="@string/pref_default_value_open_apk_default_action"
-            android:entries="@array/settings_open_apk_default_action_entries"
-            android:entryValues="@array/pref_entry_values_open_apk_default_action"
             app:useSimpleSummaryProvider="true" />
 
         <SwitchPreferenceCompat
@@ -125,5 +115,10 @@
             android:entries="@array/settings_app_lock_timeout_entries"
             android:entryValues="@array/pref_entry_values_app_lock_timeout"
             app:useSimpleSummaryProvider="true" />
+
+        <Preference
+            android:key="@string/pref_key_forget_sftp_host_keys"
+            android:title="@string/settings_forget_sftp_host_keys_title"
+            android:summary="@string/settings_forget_sftp_host_keys_summary" />
     </PreferenceCategory>
 </PreferenceScreen>

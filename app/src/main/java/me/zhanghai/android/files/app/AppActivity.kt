@@ -5,7 +5,9 @@
 
 package me.zhanghai.android.files.app
 
+import android.os.Build
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
@@ -36,6 +38,15 @@ abstract class AppActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
+        // Keep file listings out of the recents thumbnail while the lock is on.
+        val isLockEnabled = AppLock.isEnabled
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            setRecentsScreenshotEnabled(!isLockEnabled)
+        } else if (isLockEnabled) {
+            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        } else {
+            window.clearFlags(WindowManager.LayoutParams.FLAG_SECURE)
+        }
         appLockGuard.onResume()
     }
 

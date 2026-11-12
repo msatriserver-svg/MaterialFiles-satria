@@ -404,5 +404,30 @@ private val Uri.fileProviderPath: Path
         // our URI scheme, which can never start with a slash; but our Uri has an authority so its
         // path must start with a slash.
         val uriPath = Uri.decode(path).substring(1)
-        return Paths.get(URI.create(uriPath))
+        return Paths.get(URI.create(uriPath)).also { it.ensureNotAppPrivate() }
     }
+
+// Satria build: never hand out our own private data (saved servers, passwords, pinned host keys)
+// through the provider, no matter who asks. The cache directory stays shareable because opened
+// remote files are staged there.
+private fun Path.ensureNotAppPrivate() {
+    if (!isLinuxPath) {
+        return
+    }
+    val file = try {
+        toFile().canonicalFile
+    } catch (e: IOException) {
+        throw SecurityException("Cannot resolve $this")
+    }
+    val context = me.zhanghai.android.files.app.application
+    val cacheDirectory = context.cacheDir.canonicalFile
+    if (file.startsWith(cacheDirectory)) {
+        return
+    }
+    val privateDirectories = listOf(
+        context.dataDir, java.io.File("/data/data", context.packageName)
+    ).map { it.canonicalFile }
+    if (privateDirectories.any { file.startsWith(it) }) {
+        throw SecurityException("Access to app private data is not allowed")
+    }
+}

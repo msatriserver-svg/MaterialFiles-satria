@@ -7,14 +7,13 @@ package me.zhanghai.android.files.provider.linux
 
 import android.os.Parcel
 import android.os.Parcelable
-import me.zhanghai.android.files.provider.root.RootPosixFileStore
 import me.zhanghai.android.files.provider.root.RootablePosixFileStore
 import me.zhanghai.android.files.util.readParcelable
 
 internal class LinuxFileStore private constructor(
     private val path: LinuxPath,
     private val localFileStore: LocalLinuxFileStore
-) : RootablePosixFileStore(path, localFileStore, { RootPosixFileStore(it) }) {
+) : RootablePosixFileStore(path, localFileStore) {
     constructor(path: LinuxPath) : this(path, LocalLinuxFileStore(path))
 
     private constructor(source: Parcel) : this(source.readParcelable()!!, source.readParcelable()!!)

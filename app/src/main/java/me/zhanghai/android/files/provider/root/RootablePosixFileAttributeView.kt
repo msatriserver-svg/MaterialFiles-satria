@@ -18,10 +18,8 @@ import java.io.IOException
 
 abstract class RootablePosixFileAttributeView(
     private val path: Path,
-    private val localAttributeView: PosixFileAttributeView,
-    rootAttributeViewCreator: (PosixFileAttributeView) -> RootPosixFileAttributeView
+    private val localAttributeView: PosixFileAttributeView
 ) : PosixFileAttributeView, Parcelable {
-    private val rootAttributeView: RootPosixFileAttributeView = rootAttributeViewCreator(this)
 
     override fun name(): String = localAttributeView.name()
 
@@ -62,7 +60,7 @@ abstract class RootablePosixFileAttributeView(
         callRootable(path) { restoreSeLinuxContext() }
     }
 
-    @Throws(IOException::class)
-    private fun <R> callRootable(path: Path, block: PosixFileAttributeView.() -> R): R =
-        callRootable(path, true, localAttributeView, rootAttributeView, block)
+    @Suppress("UNUSED_PARAMETER")
+    private inline fun <R> callRootable(path: Path, block: PosixFileAttributeView.() -> R): R =
+        localAttributeView.block()
 }

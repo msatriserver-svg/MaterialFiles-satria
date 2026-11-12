@@ -18,8 +18,6 @@ import me.zhanghai.android.files.provider.common.PosixFileMode
 import me.zhanghai.android.files.provider.common.PosixFileType
 import me.zhanghai.android.files.provider.common.newByteChannel
 import me.zhanghai.android.files.provider.common.newInputStream
-import me.zhanghai.android.files.provider.root.isRunningAsRoot
-import me.zhanghai.android.files.provider.root.rootContext
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.util.valueCompat
 import java.io.Closeable
@@ -188,23 +186,7 @@ object ArchiveReader {
     }
 
     private val archiveFileNameCharset: Charset
-        get() =
-            if (isRunningAsRoot) {
-                try {
-                    val sharedPreferences =
-                        PreferenceManager.getDefaultSharedPreferences(rootContext)
-                    val key = rootContext.getString(R.string.pref_key_archive_file_name_encoding)
-                    val defaultValue = rootContext.getString(
-                        R.string.pref_default_value_archive_file_name_encoding
-                    )
-                    Charset.forName(sharedPreferences.getString(key, defaultValue)!!)
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    StandardCharsets.UTF_8
-                }
-            } else {
-                Charset.forName(Settings.ARCHIVE_FILE_NAME_ENCODING.valueCompat)
-            }
+        get() = Charset.forName(Settings.ARCHIVE_FILE_NAME_ENCODING.valueCompat)
 
     private class ArchiveCloseable(
         private val archive: ReadArchive,

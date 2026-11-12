@@ -28,11 +28,9 @@ import java.io.OutputStream
 import java.net.URI
 
 abstract class RootableFileSystemProvider(
-    localProviderCreator: (FileSystemProvider) -> FileSystemProvider,
-    rootProviderCreator: (FileSystemProvider) -> FileSystemProvider
+    localProviderCreator: (FileSystemProvider) -> FileSystemProvider
 ) : FileSystemProvider(), PathObservableProvider, Searchable {
     protected open val localProvider: FileSystemProvider = localProviderCreator(this)
-    protected open val rootProvider: FileSystemProvider = rootProviderCreator(this)
 
     override fun getScheme(): String = localProvider.scheme
 
@@ -187,18 +185,19 @@ abstract class RootableFileSystemProvider(
         }
     }
 
-    @Throws(IOException::class)
-    private fun <R> callRootable(
+    // Root access was removed in this build: every call goes to the local provider.
+    @Suppress("UNUSED_PARAMETER")
+    private inline fun <R> callRootable(
         path: Path,
         isAttributeAccess: Boolean = false,
         block: FileSystemProvider.() -> R
-    ): R = callRootable(path, isAttributeAccess, localProvider, rootProvider, block)
+    ): R = localProvider.block()
 
-    @Throws(IOException::class)
-    private fun <R> callRootable(
+    @Suppress("UNUSED_PARAMETER")
+    private inline fun <R> callRootable(
         path1: Path,
         path2: Path,
         isAttributeAccess: Boolean = false,
         block: FileSystemProvider.() -> R
-    ): R = callRootable(path1, path2, isAttributeAccess, localProvider, rootProvider, block)
+    ): R = localProvider.block()
 }

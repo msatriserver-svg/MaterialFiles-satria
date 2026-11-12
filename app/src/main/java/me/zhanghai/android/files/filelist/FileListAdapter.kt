@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.filelist
 
+import me.zhanghai.android.files.provider.archive.isArchivePath
 import android.text.TextUtils
 import android.view.View
 import android.view.ViewGroup
@@ -31,7 +32,6 @@ import me.zhanghai.android.files.file.fileSize
 import me.zhanghai.android.files.file.formatShort
 import me.zhanghai.android.files.file.iconRes
 import me.zhanghai.android.files.file.isApk
-import me.zhanghai.android.files.provider.archive.isArchivePath
 import me.zhanghai.android.files.provider.common.isEncrypted
 import me.zhanghai.android.files.settings.Settings
 import me.zhanghai.android.files.ui.AnimatedListAdapter
@@ -334,6 +334,9 @@ class FileListAdapter(
         menu.findItem(R.id.action_rename).isVisible = !isReadOnly
         menu.findItem(R.id.action_extract).isVisible = file.isArchiveFile
         menu.findItem(R.id.action_archive).isVisible = !isArchivePath
+        menu.findItem(R.id.action_copy_to_other_pane).isVisible = listener.supportsOtherPane
+        menu.findItem(R.id.action_move_to_other_pane).isVisible =
+            listener.supportsOtherPane && !isReadOnly
         menu.findItem(R.id.action_add_bookmark).isVisible = isDirectory
         holder.popupMenu.setOnMenuItemClickListener {
             when (it.itemId) {
@@ -347,6 +350,14 @@ class FileListAdapter(
                 }
                 R.id.action_copy -> {
                     listener.copyFile(file)
+                    true
+                }
+                R.id.action_copy_to_other_pane -> {
+                    listener.copyFileToOtherPane(file)
+                    true
+                }
+                R.id.action_move_to_other_pane -> {
+                    listener.moveFileToOtherPane(file)
                     true
                 }
                 R.id.action_delete -> {
@@ -474,6 +485,9 @@ class FileListAdapter(
         fun openFileWith(file: FileItem)
         fun cutFile(file: FileItem)
         fun copyFile(file: FileItem)
+        val supportsOtherPane: Boolean
+        fun copyFileToOtherPane(file: FileItem)
+        fun moveFileToOtherPane(file: FileItem)
         fun confirmDeleteFile(file: FileItem)
         fun showRenameFileDialog(file: FileItem)
         fun extractFile(file: FileItem)
