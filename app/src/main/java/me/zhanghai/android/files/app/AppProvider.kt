@@ -16,6 +16,8 @@ lateinit var application: Application private set
 class AppProvider : ContentProvider() {
     override fun onCreate(): Boolean {
         application = context as Application
+        // First, so that a crash in any initializer is reported too.
+        CrashReporter.install(application)
         appInitializers.forEach { it() }
         return true
     }

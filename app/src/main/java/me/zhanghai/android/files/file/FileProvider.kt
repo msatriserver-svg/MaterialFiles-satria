@@ -425,7 +425,7 @@ private fun Path.ensureNotAppPrivate() {
         return
     }
     val privateDirectories = listOf(
-        context.dataDir, java.io.File("/data/data", context.packageName)
+        context.filesDir.parentFile!!, java.io.File("/data/data", context.packageName)
     ).map { it.canonicalFile }
     if (privateDirectories.any { file.startsWith(it) }) {
         throw SecurityException("Access to app private data is not allowed")

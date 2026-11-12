@@ -30,6 +30,7 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.fragment.app.commit
 import java8.nio.file.Path
 import me.zhanghai.android.files.app.AppActivity
+import me.zhanghai.android.files.app.CrashReporter
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.extraPath
@@ -52,7 +53,9 @@ class FileListActivity : AppActivity() {
         // A restored instance keeps the mode it was created with, so that its fragments find
         // their containers again.
         isDualPane = savedInstanceState?.getBoolean(STATE_DUAL_PANE)
-            ?: (Settings.FILE_LIST_DUAL_PANE.valueCompat && intent.action !in PICK_ACTIONS)
+            ?: (Settings.FILE_LIST_DUAL_PANE.valueCompat && intent.action !in PICK_ACTIONS
+                // Safe mode after a crash, until the report is dismissed.
+                && !CrashReporter.hasReport(this))
         if (isDualPane) {
             onCreateDualPane(savedInstanceState)
             return

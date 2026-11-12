@@ -275,6 +275,14 @@
             </intent-filter>
         </activity>
 
+        <!-- Satria build: own process, so it can show a crash that happens during startup. -->
+        <activity
+            android:name="me.zhanghai.android.files.app.CrashReportActivity"
+            android:exported="false"
+            android:process=":crash"
+            android:taskAffinity="com.satriaweb.files.crash"
+            android:theme="@android:style/Theme.DeviceDefault.Light" />
+
         <service
             android:name="me.zhanghai.android.files.filejob.FileJobService"
             android:exported="false"
