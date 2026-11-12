@@ -809,4 +809,20 @@
     <string name="about_modifier_title" translatable="false">Dimodifikasi oleh</string>
     <string name="about_modifier_name" translatable="false">Satriawan</string>
     <string name="about_modifier_summary" translatable="false">Versi khusus: hanya SFTP, tanpa FTP, SMB, WebDAV &amp; Firebase</string>
+    <string name="settings_security_title">Security</string>
+    <string name="settings_app_lock_title">App lock</string>
+    <string name="settings_app_lock_summary">Require fingerprint, face, or device PIN/pattern/password when opening the app</string>
+    <string name="settings_app_lock_timeout_title">Lock again after leaving app</string>
+    <string-array name="settings_app_lock_timeout_entries">
+        <item>Immediately</item>
+        <item>30 seconds</item>
+        <item>1 minute</item>
+        <item>5 minutes</item>
+    </string-array>
+    <string name="settings_app_lock_no_credential">Set up a screen lock (PIN, pattern, password, fingerprint or face) on this device first</string>
+    <string name="app_lock_title">Unlock Material Files</string>
+    <string name="app_lock_subtitle">Use fingerprint, face, or device screen lock</string>
+    <string name="app_lock_confirm_title">Confirm it\'s you</string>
+    <string name="app_lock_locked">App is locked</string>
+    <string name="app_lock_unlock">Unlock</string>
 </resources>

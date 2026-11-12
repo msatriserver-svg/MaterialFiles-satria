@@ -7,6 +7,10 @@ package me.zhanghai.android.files.settings
 
 import android.os.Build
 import android.os.Bundle
+import android.widget.Toast
+import androidx.preference.SwitchPreferenceCompat
+import me.zhanghai.android.files.app.AppLock
+import me.zhanghai.android.files.util.showToast
 import me.zhanghai.android.files.R
 import me.zhanghai.android.files.theme.custom.CustomThemeHelper
 import me.zhanghai.android.files.theme.custom.ThemeColor
@@ -26,6 +30,29 @@ class SettingsPreferenceFragment : PreferenceFragmentCompat() {
                 val activity = requireActivity() as SettingsActivity
                 activity.setApplicationLocalesPre33(locales)
             }
+        }
+
+        val appLockPreference = preferenceScreen.findPreference<SwitchPreferenceCompat>(
+            getString(R.string.pref_key_app_lock)
+        )!!
+        appLockPreference.setOnPreferenceChangeListener { _, newValue ->
+            val enable = newValue as Boolean
+            if (!AppLock.canAuthenticate(requireActivity())) {
+                if (enable) {
+                    requireContext().showToast(
+                        R.string.settings_app_lock_no_credential, Toast.LENGTH_LONG
+                    )
+                    return@setOnPreferenceChangeListener false
+                }
+                // No device lock anymore: allow turning it off.
+                return@setOnPreferenceChangeListener true
+            }
+            AppLock.confirm(this) { success ->
+                if (success) {
+                    appLockPreference.isChecked = enable
+                }
+            }
+            false
         }
     }
 

@@ -121,6 +121,14 @@ object Settings {
             R.string.pref_key_black_night_mode, R.bool.pref_default_value_black_night_mode
         )
 
+    val APP_LOCK: SettingLiveData<Boolean> =
+        BooleanSettingLiveData(R.string.pref_key_app_lock, R.bool.pref_default_value_app_lock)
+
+    val APP_LOCK_TIMEOUT: SettingLiveData<String> =
+        StringSettingLiveData(
+            R.string.pref_key_app_lock_timeout, R.string.pref_default_value_app_lock_timeout
+        )
+
     val FILE_LIST_ANIMATION: SettingLiveData<Boolean> =
         BooleanSettingLiveData(
             R.string.pref_key_file_list_animation, R.bool.pref_default_value_file_list_animation

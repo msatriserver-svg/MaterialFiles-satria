@@ -28,6 +28,7 @@ val appInitializers = listOf(
     ::initializeLiveDataObjects,
     ::initializeCustomTheme,
     ::initializeNightMode,
+    ::initializeAppLock,
     ::createNotificationChannels
 )
 
@@ -59,6 +60,10 @@ private fun initializeCustomTheme() {
 
 private fun initializeNightMode() {
     NightModeHelper.initialize(application)
+}
+
+private fun initializeAppLock() {
+    AppLock.initialize()
 }
 
 private fun createNotificationChannels() {

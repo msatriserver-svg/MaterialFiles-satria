@@ -82,4 +82,14 @@
     <bool name="pref_visible_show_pdf_thumbnail_pre_28">true</bool>
     <string name="pref_key_read_remote_files_for_thumbnail">key_read_remote_files_for_thumbnail</string>
     <bool name="pref_default_value_read_remote_files_for_thumbnail">true</bool>
+    <string name="pref_key_app_lock">key_app_lock</string>
+    <bool name="pref_default_value_app_lock">false</bool>
+    <string name="pref_key_app_lock_timeout">key_app_lock_timeout</string>
+    <string name="pref_default_value_app_lock_timeout">60</string>
+    <string-array name="pref_entry_values_app_lock_timeout">
+        <item>0</item>
+        <item>30</item>
+        <item>60</item>
+        <item>300</item>
+    </string-array>
 </resources>

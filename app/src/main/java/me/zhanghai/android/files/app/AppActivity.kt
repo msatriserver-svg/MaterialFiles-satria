@@ -13,6 +13,7 @@ import me.zhanghai.android.files.theme.night.NightModeHelper
 
 abstract class AppActivity : AppCompatActivity() {
     private var isDelegateCreated = false
+    private lateinit var appLockGuard: AppLock.Guard
 
     override fun getDelegate(): AppCompatDelegate {
         val delegate = super.getDelegate()
@@ -28,6 +29,14 @@ abstract class AppActivity : AppCompatActivity() {
         CustomThemeHelper.apply(this)
 
         super.onCreate(savedInstanceState)
+
+        appLockGuard = AppLock.Guard(this)
+    }
+
+    override fun onResume() {
+        super.onResume()
+
+        appLockGuard.onResume()
     }
 
     override fun onSupportNavigateUp(): Boolean {

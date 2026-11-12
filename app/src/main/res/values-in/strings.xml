@@ -640,4 +640,20 @@
     <string name="about_author_name_title">Hai Zhang</string>
     <string name="about_author_github_title">Ikuti di GitHub</string>
     <string name="about_author_twitter_title">Ikuti di Twitter</string>
+    <string name="settings_security_title">Keamanan</string>
+    <string name="settings_app_lock_title">Kunci aplikasi</string>
+    <string name="settings_app_lock_summary">Minta sidik jari, wajah, atau PIN/pola/kata sandi perangkat saat membuka aplikasi</string>
+    <string name="settings_app_lock_timeout_title">Kunci lagi setelah keluar aplikasi</string>
+    <string-array name="settings_app_lock_timeout_entries">
+        <item>Segera</item>
+        <item>30 detik</item>
+        <item>1 menit</item>
+        <item>5 menit</item>
+    </string-array>
+    <string name="settings_app_lock_no_credential">Atur dulu kunci layar perangkat (PIN, pola, kata sandi, sidik jari, atau wajah)</string>
+    <string name="app_lock_title">Buka kunci Material Files</string>
+    <string name="app_lock_subtitle">Gunakan sidik jari, wajah, atau kunci layar perangkat</string>
+    <string name="app_lock_confirm_title">Konfirmasi bahwa ini Anda</string>
+    <string name="app_lock_locked">Aplikasi terkunci</string>
+    <string name="app_lock_unlock">Buka kunci</string>
 </resources>
