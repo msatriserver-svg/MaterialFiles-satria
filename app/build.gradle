@@ -62,7 +62,10 @@ android {
             minifyEnabled true
             shrinkResources true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-            signingConfig signingConfigs.release
+            // Tanpa kunci (mis. di GitHub Actions) hasilnya APK unsigned; ditandatangani di server.
+            if (signingConfigs.release.storeFile != null) {
+                signingConfig signingConfigs.release
+            }
         }
     }
     packagingOptions {
