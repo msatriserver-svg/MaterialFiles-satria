@@ -1,4 +1,5 @@
 name: Build APK (unsigned)
+# Hasil: artifact "apk-unsigned"; tandatangani + terbitkan di server dengan ~/terbitkan-materialfiles.sh
 
 on:
   push:
