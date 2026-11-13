@@ -1,4 +1,22 @@
-# Material Files
+# Material Files — versi Satria
+
+Fork dari [Material Files](https://github.com/zhanghai/MaterialFiles) karya Hai Zhang (GPL-3.0), paket `com.satriaweb.files`.
+
+**Unduh APK:** https://satri.duckdns.org/unduh/MaterialFiles-satria.apk
+
+## Fitur utama versi ini
+
+- 🔒 **Lebih aman: koneksi hanya lewat SFTP.** FTP/FTPS, SMB, WebDAV dan server FTP bawaan dibuang, karena protokol itu mengirim data/password tanpa enkripsi atau membuka celah di jaringan. Sidik jari server SFTP dicatat dan dicocokkan setiap konek (*host key pinning*), dan data server tersimpan terenkripsi dengan Android Keystore.
+- 🔐 **Kunci aplikasi: PIN/password, sidik jari, atau wajah.** Aplikasi minta verifikasi saat dibuka dan setelah ditinggal beberapa saat (Pengaturan › Keamanan › Kunci aplikasi). Pratinjau di daftar aplikasi terbaru ikut disembunyikan.
+- 🗂️ **Dua panel (dual pane).** Dua folder berdampingan seperti WinSCP — misalnya HP di kiri, server SFTP di kanan — lalu salin/pindahkan file ke panel sebelah dengan sekali ketuk.
+
+Perubahan lain: tanpa Firebase Analytics/Crashlytics, tanpa akses root, tanpa pemasang APK, cadangan cloud dimatikan, buat file zip langsung di folder SFTP, koneksi SFTP tetap hidup di jaringan seluler (*keep-alive* + coba ulang otomatis), dan layar laporan error bila aplikasi crash.
+
+---
+
+*Di bawah ini README asli Material Files.*
+
+## Material Files (asli)
 
 [本文中文版](README_zh-CN.md)
 
