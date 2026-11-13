@@ -30,7 +30,6 @@ import androidx.activity.result.contract.ActivityResultContract
 import androidx.fragment.app.commit
 import java8.nio.file.Path
 import me.zhanghai.android.files.app.AppActivity
-import me.zhanghai.android.files.app.CrashReporter
 import me.zhanghai.android.files.file.MimeType
 import me.zhanghai.android.files.util.createIntent
 import me.zhanghai.android.files.util.extraPath
@@ -52,10 +51,20 @@ class FileListActivity : AppActivity() {
 
         // A restored instance keeps the mode it was created with, so that its fragments find
         // their containers again.
+        val isPicker = intent.action in PICK_ACTIONS
+        // Safe mode only for the launch from the crash report screen.
+        val isSafeMode = intent.getBooleanExtra(EXTRA_SAFE_MODE, false)
         isDualPane = savedInstanceState?.getBoolean(STATE_DUAL_PANE)
-            ?: (Settings.FILE_LIST_DUAL_PANE.valueCompat && intent.action !in PICK_ACTIONS
-                // Safe mode after a crash, until the report is dismissed.
-                && !CrashReporter.hasReport(this))
+            ?: (Settings.FILE_LIST_DUAL_PANE.valueCompat && !isPicker && !isSafeMode)
+        if (!isPicker) {
+            // Apply the "Two panes" setting right away instead of on the next cold start.
+            val initialSetting = Settings.FILE_LIST_DUAL_PANE.valueCompat
+            Settings.FILE_LIST_DUAL_PANE.observe(this) {
+                if (it != initialSetting && it != isDualPane) {
+                    restartFresh()
+                }
+            }
+        }
         if (isDualPane) {
             onCreateDualPane(savedInstanceState)
             return
@@ -175,6 +184,15 @@ class FileListActivity : AppActivity() {
         return super.dispatchTouchEvent(event)
     }
 
+    // A plain recreate() would restore the fragments of the old layout, so start over instead.
+    private fun restartFresh() {
+        startActivity(
+            FileListActivity::class.createIntent()
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+        )
+        finish()
+    }
+
     /** The directory shown by the pane opposite to [paneIndex], or null in single pane mode. */
     fun getOtherPanePath(paneIndex: Int): Path? =
         if (isDualPane) fragments.getOrNull(1 - paneIndex)?.paneCurrentPath else null
@@ -195,6 +213,8 @@ class FileListActivity : AppActivity() {
     }
 
     companion object {
+        const val EXTRA_SAFE_MODE = "com.satriaweb.files.extra.SAFE_MODE"
+
         private const val STATE_DUAL_PANE = "dual_pane"
         private const val STATE_ACTIVE_PANE = "active_pane"
 

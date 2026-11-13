@@ -32,8 +32,8 @@ class CrashReportActivity : Activity() {
         val padding = (16 * resources.displayMetrics.density).toInt()
         val title = TextView(this).apply {
             text = "Aplikasi mengalami error.\n\nSalin atau bagikan teks di bawah ini lalu kirim " +
-                "ke admin. Setelah itu tekan \"Buka lagi\": aplikasi dibuka dalam mode aman " +
-                "(satu panel) sampai laporan ini dihapus."
+                "ke admin. Setelah itu tekan \"Buka lagi\": aplikasi dibuka sekali dalam mode aman " +
+                "(satu panel)."
             textSize = 15f
         }
         val reportText = TextView(this).apply {
@@ -65,6 +65,7 @@ class CrashReportActivity : Activity() {
             addView(button("Buka lagi (mode aman)") {
                 startActivity(
                     Intent(this@CrashReportActivity, FileListActivity::class.java)
+                        .putExtra(FileListActivity.EXTRA_SAFE_MODE, true)
                         .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                 )
                 finish()

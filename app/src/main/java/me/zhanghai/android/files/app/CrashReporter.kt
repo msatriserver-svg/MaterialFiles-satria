@@ -23,9 +23,6 @@ object CrashReporter {
 
     fun getReportFile(context: Context): File = File(context.filesDir, FILE_NAME)
 
-    /** True after a crash until the user dismisses the report: the app then starts safely. */
-    fun hasReport(context: Context): Boolean = getReportFile(context).exists()
-
     fun install(context: Context) {
         val appContext = context.applicationContext
         val previousHandler = Thread.getDefaultUncaughtExceptionHandler()

@@ -657,7 +657,7 @@
     <string name="app_lock_locked">Aplikasi terkunci</string>
     <string name="app_lock_unlock">Buka kunci</string>
     <string name="settings_file_list_dual_pane_title">Dua panel</string>
-    <string name="settings_file_list_dual_pane_summary">Tampilkan dua daftar file sekaligus (kiri-kanan saat lanskap, atas-bawah saat potret), misalnya lokal di satu sisi dan SFTP di sisi lain. Berlaku saat aplikasi dibuka lagi.</string>
+    <string name="settings_file_list_dual_pane_summary">Tampilkan dua daftar file sekaligus (kiri-kanan saat lanskap, atas-bawah saat potret), misalnya lokal di satu sisi dan SFTP di sisi lain.</string>
     <string name="file_list_action_copy_to_other_pane">Salin ke panel sebelah</string>
     <string name="file_list_action_move_to_other_pane">Pindahkan ke panel sebelah</string>
     <string name="file_list_other_pane_read_only">Folder di panel sebelah hanya-baca</string>
