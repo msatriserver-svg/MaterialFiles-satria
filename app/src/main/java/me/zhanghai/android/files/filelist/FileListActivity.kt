@@ -114,6 +114,9 @@ class FileListActivity : AppActivity() {
         val density = resources.displayMetrics.density
         val panesLayout = LinearLayout(this).apply {
             orientation = if (isLandscape) LinearLayout.HORIZONTAL else LinearLayout.VERTICAL
+            // A horizontal LinearLayout measures weighted children with UNSPECIFIED width first
+            // to align baselines, and DrawerLayout in each pane throws on that (landscape crash).
+            isBaselineAligned = false
         }
         val paneIds = listOf(R.id.file_list_pane_first, R.id.file_list_pane_second)
         paneIds.forEachIndexed { index, paneId ->
