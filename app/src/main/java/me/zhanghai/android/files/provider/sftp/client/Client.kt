@@ -253,6 +253,19 @@ object Client {
             }
             val authentication = authenticator.getAuthentication(authority)
                 ?: throw ClientException("No authentication found for $authority")
+            // Satria build: an encrypted key saved without its passphrase asks for it on every
+            // new connection, before the network connection is opened.
+            val authMethod = if (
+                authentication is PublicKeyAuthentication &&
+                authentication.privateKeyPassword == null &&
+                PublicKeyAuthentication.isEncrypted(authentication.privateKey)
+            ) {
+                val passphrase =
+                    SftpPassphrasePrompt.request(authority, authentication.privateKey)
+                PublicKeyAuthentication(authentication.privateKey, passphrase).toAuthMethod()
+            } else {
+                authentication.toAuthMethod()
+            }
             val hostKeyVerifier = KnownHosts.Verifier()
             // Satria build: mobile networks drop idle connections silently. Keep-alives keep the
             // connection open, and detect a dead one so that the next call reconnects.
@@ -278,7 +291,7 @@ object Client {
                 throw ClientException(e)
             }
             try {
-                sshClient.auth(authority.username, authentication.toAuthMethod())
+                sshClient.auth(authority.username, authMethod)
             } catch (e: UserAuthException) {
                 sshClient.closeSafe()
                 throw ClientException(e)

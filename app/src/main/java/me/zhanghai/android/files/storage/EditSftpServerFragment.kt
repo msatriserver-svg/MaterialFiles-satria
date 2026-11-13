@@ -328,7 +328,11 @@ class EditSftpServerFragment : Fragment() {
                     }
                 } else {
                     val exception = PublicKeyAuthentication.validate(privateKey, privateKeyPassword)
-                    if (exception != null) {
+                    // Satria build: an encrypted key may be saved without its passphrase; it is
+                    // then asked on every connection.
+                    val isPassphraseAskedLater = exception != null &&
+                        privateKeyPassword == null && PublicKeyAuthentication.isEncrypted(privateKey)
+                    if (exception != null && !isPassphraseAskedLater) {
                         exception.printStackTrace()
                         if (exception is KeyDecryptionFailedException) {
                             binding.privateKeyPasswordLayout.error = getString(

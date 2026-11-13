@@ -473,7 +473,7 @@
     <string name="storage_edit_sftp_server_private_key_error_empty">Masukkan kunci privat</string>
     <string name="storage_edit_sftp_server_private_key_error_invalid">Kunci privat tidak valid</string>
     <string name="storage_edit_sftp_server_private_key_password">Sandi kunci privat</string>
-    <string name="storage_edit_sftp_server_private_key_password_placeholder">Boleh dikosongkan</string>
+    <string name="storage_edit_sftp_server_private_key_password_placeholder">Kosongkan agar ditanya setiap kali konek</string>
     <string name="storage_edit_sftp_server_private_key_password_error_invalid">Sandi kunci privat tidak valid</string>
     <string name="storage_edit_sftp_server_connect_and_add">Sambung dan tambah</string>
     <string name="storage_edit_sftp_server_add">Tambah</string>
@@ -666,4 +666,9 @@
     <string name="settings_forget_sftp_host_keys_summary">Identitas tiap server diingat saat koneksi pertama dan diperiksa setiap kali tersambung. Pakai ini hanya setelah Anda sendiri mengganti kunci server.</string>
     <string name="settings_forget_sftp_host_keys_done">Host key tersimpan dihapus</string>
     <string name="sftp_host_key_changed_format">PERINGATAN: host key %1$s:%2$d BERUBAH. Koneksi mungkin sedang disadap. Koneksi ditolak.\nTersimpan: %3$s\nDiterima: %4$s\nJika Anda sendiri yang mengganti kunci server, buka Pengaturan > Keamanan > Lupakan host key SFTP.</string>
+    <string name="sftp_passphrase_title">Passphrase kunci privat</string>
+    <string name="sftp_passphrase_message_format">Masukkan passphrase kunci privat untuk %1$s@%2$s:%3$d. Passphrase tidak disimpan.</string>
+    <string name="sftp_passphrase_error_empty">Passphrase tidak boleh kosong</string>
+    <string name="sftp_passphrase_error_wrong">Passphrase salah</string>
+    <string name="sftp_passphrase_error_cancelled">Passphrase kunci privat tidak diisi</string>
 </resources>

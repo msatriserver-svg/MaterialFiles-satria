@@ -615,7 +615,7 @@
     <string name="storage_edit_sftp_server_private_key_error_empty">Enter a private key</string>
     <string name="storage_edit_sftp_server_private_key_error_invalid">Invalid private key</string>
     <string name="storage_edit_sftp_server_private_key_password">Private key password</string>
-    <string name="storage_edit_sftp_server_private_key_password_placeholder">Can be left empty</string>
+    <string name="storage_edit_sftp_server_private_key_password_placeholder">Leave empty to be asked on every connection</string>
     <string name="storage_edit_sftp_server_private_key_password_error_invalid">Invalid private key password</string>
     <string name="storage_edit_sftp_server_connect_and_add">Connect and add</string>
     <string name="storage_edit_sftp_server_add">Add</string>
@@ -835,4 +835,9 @@
     <string name="settings_forget_sftp_host_keys_summary">The identity of each server is remembered on first connection and checked every time. Use this only after you changed a server\'s key yourself.</string>
     <string name="settings_forget_sftp_host_keys_done">Saved host keys removed</string>
     <string name="sftp_host_key_changed_format">WARNING: the host key of %1$s:%2$d has CHANGED. Someone may be intercepting the connection. Connection refused.\nSaved: %3$s\nReceived: %4$s\nIf you replaced the server key yourself, use Settings > Security > Forget SFTP host keys.</string>
+    <string name="sftp_passphrase_title">Private key passphrase</string>
+    <string name="sftp_passphrase_message_format">Enter the passphrase of the private key for %1$s@%2$s:%3$d. It is not saved.</string>
+    <string name="sftp_passphrase_error_empty">Passphrase cannot be empty</string>
+    <string name="sftp_passphrase_error_wrong">Wrong passphrase</string>
+    <string name="sftp_passphrase_error_cancelled">Private key passphrase was not entered</string>
 </resources>
