@@ -5,6 +5,7 @@
 
 package me.zhanghai.android.files.provider.archive.archiver
 
+import android.system.OsConstants
 import java8.nio.channels.SeekableByteChannel
 import java8.nio.charset.StandardCharsets
 import java8.nio.file.attribute.FileTime
@@ -18,6 +19,7 @@ import me.zhanghai.android.libarchive.ArchiveEntry
 import me.zhanghai.android.libarchive.ArchiveException
 import java.io.Closeable
 import java.io.IOException
+import java.io.InterruptedIOException
 import java.io.OutputStream
 import java.nio.ByteBuffer
 
@@ -46,7 +48,15 @@ class WriteArchive @Throws(ArchiveException::class) constructor(
                 )
             }
             Archive.writeOpen(
-                archive, null, null, { _, _, buffer -> channel.write(buffer) }, null
+                archive, null, null, { _, _, buffer ->
+                    // Keep the cause (e.g. "Permission denied") instead of a bare
+                    // ArchiveException.
+                    try {
+                        channel.write(buffer)
+                    } catch (e: IOException) {
+                        throw e.toArchiveException("WritableByteChannel.write")
+                    }
+                }, null
             )
             successful = true
         } finally {
@@ -68,6 +78,12 @@ class WriteArchive @Throws(ArchiveException::class) constructor(
     override fun close() {
         Archive.writeFree(archive)
     }
+
+    private fun IOException.toArchiveException(message: String): ArchiveException =
+        when (this) {
+            is InterruptedIOException -> ArchiveException(OsConstants.EINTR, "$message: $this", this)
+            else -> ArchiveException(Archive.ERRNO_FATAL, "$message: $this", this)
+        }
 
     inner class Entry(
         name: String,

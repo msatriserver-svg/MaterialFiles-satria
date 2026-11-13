@@ -60,12 +60,20 @@ class FileByteChannel(
 
     @Throws(IOException::class)
     override fun onWrite(position: Long, source: ByteBuffer) {
-        // I don't think we are using native or read-only ByteBuffer, so just call array() here.
+        // Satria build: libarchive (creating a zip on the server) passes a direct buffer, which
+        // has no array(); copy such buffers instead of failing.
+        val array: ByteArray
+        val offset: Int
+        if (source.hasArray()) {
+            array = source.array()
+            offset = source.arrayOffset() + source.position()
+        } else {
+            array = ByteArray(source.remaining())
+            source.duplicate().get(array)
+            offset = 0
+        }
         try {
-            file.write(
-                position, source.array(), source.arrayOffset() + source.position(),
-                source.remaining()
-            )
+            file.write(position, array, offset, source.remaining())
         } catch (e: IOException) {
             throw e.maybeToSpecificException()
         }
